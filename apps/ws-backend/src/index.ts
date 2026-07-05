@@ -4,12 +4,13 @@ import { JWT_SECRET } from "@repo/backend-common/config";
 import { prisma } from "@repo/db/prisma";
 
 const wss = new WebSocketServer({
-  port: 6001,
+  port: 3002,
 });
 
 //we are not persisting data in the database
 //user can send data to any room if he or she has joined room or not
 //add rate limiting also currently a user can send thousands of messages
+//also the db might overwhelm due to lot of messages coming in regularly so try to add a queue that takes 1000 messages and push it to db at once something like that
 interface User {
   socket: WebSocket;
   userId: string;

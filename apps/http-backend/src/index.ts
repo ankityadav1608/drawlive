@@ -5,9 +5,17 @@ import { CreateRoomSchema, CreateUserSchema, SignInSchema } from "@repo/common/t
 import { prisma } from "@repo/db/prisma"
 import bcrypt from "bcrypt"
 import { JWT_SECRET } from "@repo/backend-common/config";
+import cors from "cors";
 
 const app = express();
 app.use(express.json())
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true
+  })
+);
 
 app.get("/", (req, res) => {
     res.send("hi from http-backend")
@@ -56,7 +64,8 @@ app.post("/signup",async (req, res) => {
         return res.status(200).json({
             userId: user.id,
             username: user.name,
-            name: user.name
+            name: user.name,
+            message: "sign up successful"
         })
     } catch(e) {
         console.error(e)
@@ -110,8 +119,9 @@ app.post("/signin",async (req, res) => {
             userId: user.id
         }, JWT_SECRET!, { expiresIn: "7d"})
 
-        return res.status(200).set("Authorization", `Bearer ${token}`).json({
+        return res.status(200).json({
            message: "signin successfull",
+           token
         })
     }catch(e){
         console.error(e)
@@ -225,6 +235,25 @@ app.get("/chats/:slug",middleware, async (req, res) =>{
 
 })
 
-app.listen(6000, () => {
-    console.log("listening on port 6000")
+app.get("/room/:slug",async (req, res) => {
+    const slug = req.params.slug;
+    const room = await prisma.room.findFirst({
+        where: {
+            slug
+        }
+    })
+
+    if(!room) {
+        res.json({
+            message: "room does not exist"
+        })
+        return
+    }
+    res.json({
+        roomId: room.id
+    })
+})
+
+app.listen(3001, () => {
+    console.log("listening on port 3001")
 })
