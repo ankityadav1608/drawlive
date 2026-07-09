@@ -53,8 +53,13 @@ wss.on("connection", (socket, request) => {
   }
 
   socket.on("message",async (data) => {
+    let parsedData;
     
-    const parsedData = JSON.parse(data.toString());
+    if(typeof data !== "string") {
+      parsedData = JSON.parse(data.toString());
+    } else {
+      parsedData = JSON.parse(data);
+    }
 
     const user = users.find((x) => x.socket === socket);
 
