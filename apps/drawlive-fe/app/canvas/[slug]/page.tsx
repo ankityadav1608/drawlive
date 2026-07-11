@@ -9,7 +9,9 @@ export default async function CanvasPage({ params }: { params: { slug: string }}
    console.log(roomId)
    console.log(slug);
 
-   return <RoomCanvas slug={slug} roomId={roomId}/>
+   return <div className="bg-black h-screen">
+      <RoomCanvas slug={slug} roomId={roomId}/>
+   </div>
 }
 
 
