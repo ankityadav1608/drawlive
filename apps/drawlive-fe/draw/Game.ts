@@ -21,6 +21,12 @@ type Shape = {
 } | {
     type: "pencil";
     points: { x: number, y: number }[]
+} | {
+    type: "text";
+    x: number;
+    y: number;
+    content: string;
+    fontSize: number;
 }
 
 export class Game {
@@ -52,7 +58,7 @@ export class Game {
         this.initMouseHandler();
     }
 
-    setTool(tool: "circle" | "pencil" | "rect" | "eraser" | "line") {
+    setTool(tool: "circle" | "pencil" | "rect" | "eraser" | "line" | "text") {
         this.selectedTool = tool;
     }
 
@@ -102,6 +108,11 @@ export class Game {
                 }
                 this.ctx.stroke();
                 this.ctx.closePath();
+            } else if (shape.type == "text") {
+                this.ctx.fillStyle = "rgba(255, 255, 255)";
+                this.ctx.font = `${shape.fontSize}px sans-serif`;
+                this.ctx.textBaseline = "top";
+                this.ctx.fillText(shape.content, shape.x, shape.y);
             }
         })
     }
@@ -113,6 +124,12 @@ export class Game {
 
         if (this.selectedTool == "pencil") {
             this.currentPencilPoints = [{ x: e.clientX, y: e.clientY }];
+        }
+        console.log("mousedown, tool =", this.selectedTool);
+        if (this.selectedTool == "text") {
+            e.preventDefault()
+            this.createTextInput(e.clientX, e.clientY);
+            return;
         }
     }
 
@@ -211,6 +228,84 @@ export class Game {
                 this.ctx.closePath();
             }
         }
+    }
+
+    createTextInput(x: number, y: number) {
+        const fontSize = 20;
+
+        const input = document.createElement("textarea");
+        input.style.position = "fixed";
+        input.style.left = `${x}px`;
+        input.style.top = `${y}px`;
+        input.style.background = "transparent";
+        input.style.border = "1px dashed rgba(255, 255, 255, 0.4)";
+        input.style.outline = "none";
+        input.style.color = "white";
+        input.style.font = `${fontSize}px sans-serif`;
+        input.style.lineHeight = "1.3";        // room for ascenders/descenders
+        input.style.padding = "2px 4px";       // small breathing room, no clipping
+        input.style.margin = "0px";
+        input.style.resize = "none";
+        input.style.overflow = "hidden";
+        input.style.whiteSpace = "pre";        // don't wrap while measuring width
+        input.style.zIndex = "1000";
+        input.rows = 1;
+
+        document.body.appendChild(input);
+        setTimeout(() => input.focus(), 0);
+
+        const resize = () => {
+            this.ctx.font = `${fontSize}px sans-serif`;
+            const width = this.ctx.measureText(input.value || " ").width;
+            input.style.width = `${width + 12}px`; // +12 = padding + a little room for the caret
+
+            input.style.height = "auto";
+            input.style.height = `${input.scrollHeight}px`;
+        };
+
+        resize(); // set initial size immediately, don't wait for first keystroke
+        input.addEventListener("input", resize);
+
+        const commit = () => {
+            const content = input.value.trim();
+            if (document.body.contains(input)) {
+                document.body.removeChild(input);
+            }
+
+            if (!content) return;
+
+            const shape: Shape = {
+                type: "text",
+                x,
+                y,
+                content,
+                fontSize
+            };
+
+            this.existingShapes.push(shape);
+            this.clearCanvas();
+
+            this.socket.send(JSON.stringify({
+                type: "chat",
+                message: JSON.stringify({ shape }),
+                roomId: this.roomId
+            }));
+        };
+
+        input.addEventListener("blur", commit);
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                input.blur();
+            }
+            if (e.key === "Escape") {
+                input.removeEventListener("blur", commit);
+                if (document.body.contains(input)) {
+                    document.body.removeChild(input);
+                }
+            }
+        });
     }
 
     initMouseHandler() {

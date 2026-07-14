@@ -1,8 +1,10 @@
+"use client"
+
 import { Game } from "@/draw/Game";
-import { Circle, Eraser, LineChart, LineDotRightHorizontal, LineSquiggle, LineStyle, Minus, Pencil, RectangleHorizontalIcon } from "lucide-react";
+import { CaseSensitive, Circle, Eraser, Minus, Pencil, RectangleHorizontalIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-export type Tool = "circle" | "pencil" | "rect" | "eraser" | "line";
+export type Tool = "circle" | "pencil" | "rect" | "eraser" | "line" | "text";
 
 const Canvas = ({
   slug,
@@ -35,54 +37,42 @@ const Canvas = ({
     }
   }, [canvasRef]);
 
+  const tools: { id: Tool; icon: typeof Pencil; label: string }[] = [
+    { id: "pencil", icon: Pencil, label: "Pencil" },
+    { id: "circle", icon: Circle, label: "Circle" },
+    { id: "rect", icon: RectangleHorizontalIcon, label: "Rectangle" },
+    { id: "line", icon: Minus, label: "Line" },
+    { id: "eraser", icon: Eraser, label: "Eraser" },
+    {id: "text", icon: CaseSensitive, label: "text"}
+  ];
+
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen w-screen overflow-hidden relative bg-black">
       <canvas ref={canvasRef} width={1800} height={1080}></canvas>
-      
-      <button
-        onClick={() => {
-          setSelectedTool("eraser");
-        }}
-        className={`bg-white text-black p-3 rounded-[100%] absolute right-5 top-5 cursor-pointer ${selectedTool === "eraser" ? 'text-gray-500' : ''}`}
-      >
-        <Eraser />
-      </button>
 
-      <button
-        onClick={() => {
-          setSelectedTool("line");
-        }}
-        className={`bg-white text-black p-3 rounded-[100%] absolute right-20 top-5 cursor-pointer ${selectedTool === "line" ? 'text-gray-500' : ''}`}
-      >
-        <Minus />
-      </button>
+      {/* Room label */}
+      <div className="absolute top-5 left-5 flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-white/60" />
+        <span className="font-mono text-sm text-white/50">{slug}</span>
+      </div>
 
-      <button
-        onClick={() => {
-          setSelectedTool("rect");
-        }}
-       className={`bg-white text-black p-3 rounded-[100%] absolute right-35 top-5 cursor-pointer ${selectedTool === "rect" ? 'text-gray-500' : ''}`}
-      >
-        <RectangleHorizontalIcon />
-      </button>
-
-      <button
-        onClick={() => {
-          setSelectedTool("circle");
-        }}
-        className={`bg-white text-black p-3 rounded-[100%] absolute right-50 top-5 cursor-pointer ${selectedTool === "circle" ? 'text-gray-500' : ''}`}
-      >
-        <Circle />
-      </button>
-
-      <button
-        onClick={() => {
-          setSelectedTool("pencil");
-        }}
-        className={`bg-white text-black p-3 rounded-[100%] absolute right-65 top-5 cursor-pointer ${selectedTool === "pencil" ? 'text-gray-500' : ''}`}
-      >
-        <Pencil />
-      </button>
+      {/* Floating toolbar */}
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-black/80 border border-white/15 rounded-lg p-1.5 backdrop-blur-sm">
+        {tools.map(({ id, icon: Icon, label }) => (
+          <button
+            key={id}
+            title={label}
+            onClick={() => setSelectedTool(id)}
+            className={`p-2.5 rounded-md transition-colors duration-150 cursor-pointer ${
+              selectedTool === id
+                ? "bg-white text-black"
+                : "text-white/60 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <Icon size={18} />
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

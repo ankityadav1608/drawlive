@@ -254,6 +254,19 @@ app.get("/room/:slug",async (req, res) => {
     })
 })
 
+app.get("/rooms",async (req, res) => {
+    try {
+        const response = await prisma.room.findMany();
+    return res.status(200).json({
+        response
+    })
+    } catch(e) {
+        res.status(500).json({
+            message: "internal server error"
+        })
+    }
+})
+
 app.listen(3001, () => {
     console.log("listening on port 3001")
 })

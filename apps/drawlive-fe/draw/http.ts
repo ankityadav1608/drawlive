@@ -1,9 +1,15 @@
 import axios from "axios";
 
+function getAuthHeader(): string {
+    if (typeof window === "undefined") return ""; // guards against server-side execution
+    const token = localStorage.getItem("token");
+    return token ? token : "";
+}
+
 export async function getExistingShapes(slug: string) {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_HTTP_URL}/chats/${slug}`, {
         headers: {
-            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkZGZlNGViYS1mZGUzLTRmNGYtYjQzZi0yOGQ3ZDk3NTcxYzMiLCJpYXQiOjE3ODM1NjE3MjMsImV4cCI6MTc4NDE2NjUyM30.y0e9taR3hL8JYS6gEs_8Tu04-wzrxLhH2TohIYortI8"
+            Authorization: getAuthHeader()
         }
     })
     const messages = response.data.chats;
@@ -14,4 +20,13 @@ export async function getExistingShapes(slug: string) {
     })
 
     return shapes;
+}
+
+export const getRoomId = async (slug: string) => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_HTTP_URL}/room/${slug}`, {
+        headers: {
+            Authorization: getAuthHeader()
+        }
+    })
+    return response.data.roomId
 }
