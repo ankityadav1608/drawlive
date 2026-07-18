@@ -17,11 +17,11 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
     res.send("hi from http-backend")
 })
 
-app.post("/signup",async (req, res) => {
+app.post("/api/signup",async (req, res) => {
    
     try {
          const parsed = CreateUserSchema.safeParse(req.body)
@@ -76,7 +76,7 @@ app.post("/signup",async (req, res) => {
 
 })
 
-app.post("/signin",async (req, res) => {
+app.post("/api/signin",async (req, res) => {
 
     try {
         const parsed = SignInSchema.safeParse(req.body);
@@ -133,7 +133,7 @@ app.post("/signin",async (req, res) => {
 })
 
 
-app.post("/room",middleware,async (req, res) => {
+app.post("/api/room",middleware,async (req, res) => {
    try {
     const parsed = CreateRoomSchema.safeParse(req.body);
 
@@ -191,7 +191,7 @@ app.post("/room",middleware,async (req, res) => {
    }
 })
 
-app.get("/chats/:slug",middleware, async (req, res) =>{
+app.get("/api/chats/:slug",middleware, async (req, res) =>{
     try {
 
         const slug = req.params.slug;
@@ -235,7 +235,7 @@ app.get("/chats/:slug",middleware, async (req, res) =>{
 
 })
 
-app.get("/room/:slug",async (req, res) => {
+app.get("/api/room/:slug",async (req, res) => {
     const slug = req.params.slug;
     const room = await prisma.room.findFirst({
         where: {
@@ -254,7 +254,7 @@ app.get("/room/:slug",async (req, res) => {
     })
 })
 
-app.get("/rooms",async (req, res) => {
+app.get("/api/rooms",async (req, res) => {
     try {
         const response = await prisma.room.findMany();
     return res.status(200).json({
